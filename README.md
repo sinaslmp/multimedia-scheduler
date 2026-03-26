@@ -26,7 +26,16 @@ teaching and demonstration tool.
 | Backend  | Python 3.12 + FastAPI + Pydantic   |
 | Frontend | Next.js 14 + TypeScript + Tailwind |
 | Charts   | Recharts                           |
-| Deploy   | Docker Compose (optional)          |
+| Deploy   | Vercel (frontend) + Render (backend) |
+
+---
+
+## Live Demo
+
+| Service  | URL |
+|----------|-----|
+| Frontend | https://multimedia-scheduler-d3z72wjoi-sinas-projects-a3367b05.vercel.app/ |
+| Backend API | https://multimedia-scheduler.onrender.com/ |
 
 ---
 
