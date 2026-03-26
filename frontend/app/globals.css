@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Subtle card hover lift */
+.card-hover {
+  @apply transition-shadow duration-200 hover:shadow-md;
+}
