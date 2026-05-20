@@ -136,16 +136,21 @@ def _build_summary(packets: list[Packet], sim_end: float) -> dict:
 
 
 def _downsample(
-    points: list[tuple[float, int]],
+    points: list[tuple[float, int, int, int]],
     max_pts: int = MAX_TIMESERIES_POINTS,
 ) -> list[dict]:
-    """Reduce timeseries length for a lighter JSON response."""
+    """Reduce timeseries length for a lighter JSON response.
+
+    Each point is (time, total_queue, high_queue, low_queue).
+    """
     if not points:
         return []
-    if len(points) <= max_pts:
-        return [{"time": round(t, 4), "queue_length": q} for t, q in points]
     step = max(1, len(points) // max_pts)
-    return [{"time": round(t, 4), "queue_length": q} for t, q in points[::step]]
+    selected = points[::step] if len(points) > max_pts else points
+    return [
+        {"time": round(t, 4), "queue_length": q, "high_queue": h, "low_queue": lo}
+        for t, q, h, lo in selected
+    ]
 
 
 # ─── FIFO ────────────────────────────────────────────────────────────────────
@@ -166,7 +171,7 @@ def _run_fifo(packets: list[Packet], buffer_size: int) -> list[tuple[float, int]
 
     waiting:      list[int] = []          # queue of packet ids (FIFO order)
     server_busy:  bool      = False
-    snapshots:    list[tuple[float, int]] = [(0.0, 0)]
+    snapshots:    list[tuple[float, int, int, int]] = [(0.0, 0, 0, 0)]
 
     while events:
         t, etype, pid = heapq.heappop(events)
@@ -193,7 +198,9 @@ def _run_fifo(packets: list[Packet], buffer_size: int) -> list[tuple[float, int]
             else:
                 server_busy = False
 
-        snapshots.append((t, len(waiting)))
+        high = sum(1 for wid in waiting if by_id[wid].priority == 1)
+        low = len(waiting) - high
+        snapshots.append((t, len(waiting), high, low))
 
     return snapshots
 
@@ -220,7 +227,7 @@ def _run_priority(packets: list[Packet], buffer_size: int) -> list[tuple[float, 
     # Min-heap key: (-priority, arrival_time, id) → highest priority first, then FIFO
     waiting:     list[tuple[int, float, int]] = []
     server_busy: bool = False
-    snapshots:   list[tuple[float, int]] = [(0.0, 0)]
+    snapshots:   list[tuple[float, int, int, int]] = [(0.0, 0, 0, 0)]
 
     while events:
         t, etype, pid = heapq.heappop(events)
@@ -246,7 +253,9 @@ def _run_priority(packets: list[Packet], buffer_size: int) -> list[tuple[float, 
             else:
                 server_busy = False
 
-        snapshots.append((t, len(waiting)))
+        high = sum(1 for neg_p, _, _ in waiting if neg_p == -1)
+        low = len(waiting) - high
+        snapshots.append((t, len(waiting), high, low))
 
     return snapshots
 
@@ -277,7 +286,7 @@ def _run_round_robin(packets: list[Packet], buffer_size: int) -> list[tuple[floa
     low_q:       list[int] = []   # low-priority waiting queue
     rr_turn:     int       = 0    # 0 = high's turn, 1 = low's turn
     server_busy: bool      = False
-    snapshots:   list[tuple[float, int]] = [(0.0, 0)]
+    snapshots:   list[tuple[float, int, int, int]] = [(0.0, 0, 0, 0)]
 
     def pick_next() -> Optional[int]:
         """Select next packet according to round-robin discipline."""
@@ -322,7 +331,7 @@ def _run_round_robin(packets: list[Packet], buffer_size: int) -> list[tuple[floa
             else:
                 server_busy = False
 
-        snapshots.append((t, len(high_q) + len(low_q)))
+        snapshots.append((t, len(high_q) + len(low_q), len(high_q), len(low_q)))
 
     return snapshots
 

@@ -29,6 +29,8 @@ export interface SummaryMetrics {
 export interface TimePoint {
   time: number;
   queue_length: number;
+  high_queue: number;
+  low_queue: number;
 }
 
 export interface SimulationResult {

@@ -39,6 +39,14 @@ teaching and demonstration tool.
 
 ---
 
+## Standalone Operation
+
+**This application runs entirely on your own machine — no Vercel, no cloud, no internet connection required.**
+The live demo URLs in the table above are optional conveniences; the full simulation engine runs locally.
+Use Docker (one command, see below) or run the two processes manually.
+
+---
+
 ## Running Locally (Recommended for Teaching)
 
 ### Prerequisites

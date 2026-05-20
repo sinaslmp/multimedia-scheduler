@@ -101,6 +101,8 @@ class SummaryMetrics(BaseModel):
 class TimePoint(BaseModel):
     time: float
     queue_length: int
+    high_queue: int = 0
+    low_queue: int = 0
 
 
 class SimulationResult(BaseModel):
