@@ -477,6 +477,13 @@ hr{border:none;border-top:1px solid #e5e7eb}
 
 </script>
 <script>
+// Global error catch — surfaces JS errors visibly on mobile where devtools aren't available
+window.onerror=function(msg,src,line){
+  const box=document.getElementById('errBox');
+  if(box){box.textContent='JS Error: '+msg+' (line '+line+')';box.style.display='block';}
+  return false;
+};
+
 // ─── Seeded PRNG (mulberry32) ─────────────────────────────────────────────────
 function makeRng(seed){
   let s=seed>>>0;
@@ -630,7 +637,7 @@ function runOne(cfg,mech,master){
     ?master.map(p=>({...p,serviceStart:-1,departure:-1,dropped:false}))
     :generatePackets(cfg.num_packets,cfg.arrival_rate,cfg.service_rate,cfg.hp_fraction,cfg.seed);
   const sn={fifo:runFifo,priority:runPriority,round_robin:runRR}[mech](pkts,cfg.buffer_size);
-  const end=Math.max(...pkts.filter(p=>p.departure>0).map(p=>p.departure),0);
+  const end=pkts.reduce((m,p)=>p.departure>0&&p.departure>m?p.departure:m,0);
   const ts=ds(sn,120).map(([t,q,h,lo])=>({time:+t.toFixed(4),queue_length:q,high_queue:h,low_queue:lo}));
   return{mechanism:mech,summary:buildSummary(pkts,end),queue_timeseries:ts};
 }
