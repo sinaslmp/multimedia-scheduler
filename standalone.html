@@ -325,7 +325,7 @@ hr{border:none;border-top:1px solid #e5e7eb}
     <div class="bar4-grid">
       <div class="card" style="padding:20px">
         <h3 style="margin-bottom:4px">Average End-to-End Delay</h3>
-        <p style="font-size:.75rem;color:#6b7280;margin-bottom:12px">Lower is better. Under light load all three bars will be similar — scheduling has little effect when the server keeps up easily. Push ρ above 0.8 to see Priority Queue pull ahead. Note: this is the <em>overall</em> average across both traffic classes; the per-class breakdown is in the chart below.</p>
+        <p style="font-size:.75rem;color:#6b7280;margin-bottom:12px">Lower is better. Each mechanism shows two bars: <span style="color:#f59e0b;font-weight:600">amber = high-priority</span>, <span style="color:#3b82f6;font-weight:600">blue = low-priority</span>. In FIFO both bars are nearly equal — no class distinction. In Priority Queue the gap is largest. In Round Robin it is moderate. This directly shows how each scheduler treats the two traffic classes.</p>
         <div class="chart-wrap-sm"><canvas id="barDelay"></canvas></div>
       </div>
       <div class="card" style="padding:20px">
@@ -877,6 +877,8 @@ function renderCmpSummaryCards(res){
     return`<div class="cmp-card">
       <h3 style="color:${COLORS[m]};margin-bottom:10px">${LABELS[m]}</h3>
       <div class="cmp-row"><span class="cmp-key">Avg. Delay</span><span class="cmp-val">${f(s.avg_delay)} s</span></div>
+      ${s.high_priority_avg_delay!=null?`<div class="cmp-row"><span class="cmp-key" style="color:#f59e0b">↑ High-Pri Delay</span><span class="cmp-val">${f(s.high_priority_avg_delay)} s</span></div>`:''}
+      ${s.low_priority_avg_delay!=null?`<div class="cmp-row"><span class="cmp-key" style="color:#3b82f6">↓ Low-Pri Delay</span><span class="cmp-val">${f(s.low_priority_avg_delay)} s</span></div>`:''}
       <div class="cmp-row"><span class="cmp-key">Throughput</span><span class="cmp-val">${f(s.throughput,2)} pkt/s</span></div>
       <div class="cmp-row"><span class="cmp-key">Drop Rate</span><span class="cmp-val">${pct(s.drop_rate)}</span></div>
       ${s.jains_fairness!=null?`<div class="cmp-row"><span class="cmp-key">Fairness</span><span class="cmp-val">${f(s.jains_fairness)}</span></div>`:''}
@@ -905,8 +907,11 @@ function renderBar4(res){
     scales:{y:{beginAtZero:true,title:{display:true,text:yLabel,font:{size:11}},ticks:{callback:fmt}}}});
 
   makeChart('barDelay',{type:'bar',
-    data:{labels:mechLabels,datasets:[{data:MECHS.map(m=>res[m].summary.avg_delay),backgroundColor:bg,borderRadius:4}]},
-    options:barOpts('Avg delay (s)',v=>v.toFixed(3)+'s')});
+    data:{labels:mechLabels,datasets:[
+      {label:'High Priority',data:MECHS.map(m=>res[m].summary.high_priority_avg_delay??res[m].summary.avg_delay),backgroundColor:'#f59e0b',borderRadius:4},
+      {label:'Low Priority', data:MECHS.map(m=>res[m].summary.low_priority_avg_delay??res[m].summary.avg_delay), backgroundColor:'#3b82f6',borderRadius:4},
+    ]},
+    options:{...barOpts('Avg delay (s)',v=>v.toFixed(3)+'s'),plugins:{legend:{display:true,position:'top'}}}});
 
   makeChart('barThroughput',{type:'bar',
     data:{labels:mechLabels,datasets:[{data:MECHS.map(m=>res[m].summary.throughput),backgroundColor:bg,borderRadius:4}]},

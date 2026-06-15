@@ -125,6 +125,18 @@ function ComparisonResults({ data }: { data: ComparisonResult }) {
                   <span>Avg. Delay</span>
                   <span className="font-mono font-medium">{s.avg_delay.toFixed(3)} s</span>
                 </div>
+                {s.high_priority_avg_delay != null && (
+                  <div className="flex justify-between">
+                    <span className="text-amber-600">↑ High-Pri Delay</span>
+                    <span className="font-mono font-medium text-amber-600">{s.high_priority_avg_delay.toFixed(3)} s</span>
+                  </div>
+                )}
+                {s.low_priority_avg_delay != null && (
+                  <div className="flex justify-between">
+                    <span className="text-blue-600">↓ Low-Pri Delay</span>
+                    <span className="font-mono font-medium text-blue-600">{s.low_priority_avg_delay.toFixed(3)} s</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Throughput</span>
                   <span className="font-mono font-medium">{s.throughput.toFixed(2)} pkt/s</span>

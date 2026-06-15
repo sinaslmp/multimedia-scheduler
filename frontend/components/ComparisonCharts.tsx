@@ -112,6 +112,39 @@ function PriorityDelayChart({ result }: { result: SimulationResult }) {
   );
 }
 
+/** Grouped bar chart: high vs low priority delay per mechanism. */
+function PriorityDelayGroupedChart({ results }: { results: SimulationResult[] }) {
+  const data = results.map((r) => ({
+    name: labelOf(r.mechanism),
+    mech: r.mechanism,
+    high: r.summary.high_priority_avg_delay ?? r.summary.avg_delay,
+    low:  r.summary.low_priority_avg_delay  ?? r.summary.avg_delay,
+  }));
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <h3 className="mb-1 font-semibold text-gray-800">Delay by Traffic Class — All Mechanisms</h3>
+      <p className="mb-4 text-sm text-gray-500">
+        <span className="font-semibold text-amber-500">Amber = high-priority</span>,{" "}
+        <span className="font-semibold text-blue-500">blue = low-priority</span>.
+        In FIFO both bars are nearly equal. In Priority Queue the gap is largest.
+        In Round Robin it is moderate — multimedia gets some advantage without starving regular traffic.
+      </p>
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+          <YAxis tickFormatter={(v: number) => `${v.toFixed(3)}s`} tick={{ fontSize: 11 }} />
+          <Tooltip formatter={(v: number) => `${Number(v).toFixed(3)} s`} />
+          <Legend />
+          <Bar dataKey="high" name="High Priority" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="low"  name="Low Priority"  fill="#3b82f6" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 export default function ComparisonCharts({ results }: Props) {
   if (results.length === 0) return null;
 
@@ -126,13 +159,16 @@ export default function ComparisonCharts({ results }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Priority split chart — shown first when comparing multiple mechanisms */}
+      {results.length > 1 && <PriorityDelayGroupedChart results={results} />}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <MechanismBarChart
           data={baseData}
           dataKey="avg_delay"
-          label="Average End-to-End Delay"
+          label="Average End-to-End Delay (Overall)"
           formatter={(v) => `${v.toFixed(3)} s`}
-          description="Lower is better. Priority scheduling reduces average delay by serving urgent packets first; FIFO ignores packet class."
+          description="Overall average across both traffic classes. See the grouped chart above for the per-class split."
         />
         <MechanismBarChart
           data={baseData}
