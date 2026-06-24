@@ -1,150 +1,141 @@
 # Multimedia Traffic Scheduler Simulator
 
-An interactive web application that simulates multimedia network traffic under
-three queue scheduling disciplines: **FIFO**, **Priority Queue**, and **Round Robin**.
-Built for the *Internet and Multimedia* university course as a self-contained
-teaching and demonstration tool.
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688?logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deployed-Vercel-black?logo=vercel)
 
----
-
-## Features
-
-- **Discrete-event simulation** based on the M/M/1/K queue model
-- Three scheduling mechanisms with side-by-side comparison
-- Real-time performance metrics: delay, throughput, drop rate, Jain's fairness index
-- Interactive charts: queue length over time, per-class delay, cross-mechanism comparisons
-- Three built-in presets (Balanced, Congested, High-Priority Multimedia)
-- Fixed random seed for reproducible classroom demonstrations
-- Fully responsive layout (mobile / tablet / desktop)
-
----
-
-## Tech Stack
-
-| Layer    | Technology                         |
-|----------|------------------------------------|
-| Backend  | Python 3.12 + FastAPI + Pydantic   |
-| Frontend | Next.js 14 + TypeScript + Tailwind |
-| Charts   | Recharts                           |
-| Deploy   | Vercel (frontend) + Render (backend) |
+A full-stack discrete-event simulation engine for analyzing multimedia network traffic under three queue scheduling disciplines: **FIFO**, **Priority Queue**, and **Round Robin** — with real-time metrics and interactive visualizations.
 
 ---
 
 ## Live Demo
 
-| Service  | URL |
-|----------|-----|
-| Frontend | https://multimedia-scheduler-d3z72wjoi-sinas-projects-a3367b05.vercel.app/ |
-| Backend API | https://multimedia-scheduler.onrender.com/ |
+| Service | URL |
+|---------|-----|
+| Frontend | [multimedia-scheduler.vercel.app](https://multimedia-scheduler.vercel.app/) |
+| Backend API | [multimedia-scheduler.onrender.com](https://multimedia-scheduler.onrender.com/) |
+| API Docs | [/docs](https://multimedia-scheduler.onrender.com/docs) |
 
 ---
 
-## Standalone Operation
+## Features
 
-**This application runs entirely on your own machine — no Vercel, no cloud, no internet connection required.**
-The live demo URLs in the table above are optional conveniences; the full simulation engine runs locally.
-Use Docker (one command, see below) or run the two processes manually.
+- **Discrete-event simulation** based on the M/M/1/K queue model with Poisson arrival process
+- **Three scheduling disciplines** with side-by-side comparison: FIFO, Priority Queue (non-preemptive), Round Robin
+- **Real-time performance metrics**: end-to-end delay, throughput, packet drop rate, Jain's fairness index
+- **Interactive charts**: queue length over time, per-class delay, cross-mechanism comparisons (Recharts)
+- **Reproducible runs** via configurable random seed for consistent benchmarking
+- **Three built-in presets**: Balanced Traffic, Congested Network, High-Priority Multimedia
+- **Fully responsive** layout (mobile / tablet / desktop)
+- **Docker Compose** one-command local setup
 
 ---
 
-## Running Locally (Recommended for Teaching)
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python 3.12 + FastAPI + Pydantic |
+| Frontend | Next.js 14 + TypeScript + Tailwind CSS |
+| Charts | Recharts |
+| Deploy | Vercel (frontend) + Render (backend) |
+| Containerization | Docker Compose |
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-- Python ≥ 3.10
-- Node.js ≥ 18
-- `pip` and `npm`
+- Python >= 3.10
+- Node.js >= 18
+- Docker (optional, for one-command setup)
 
-### 1. Start the backend
+### Option 1: Docker (Recommended)
 
+```bash
+git clone https://github.com/sinaslmp/multimedia-scheduler.git
+cd multimedia-scheduler
+docker compose up --build
+```
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Option 2: Manual Setup
+
+**Backend:**
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-The API is now available at `http://localhost:8000`.
-Interactive docs: `http://localhost:8000/docs`
-
-### 2. Start the frontend
-
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` in your browser.
-
----
-
-## Running with Docker (One-Command Setup)
-
-```bash
-docker compose up --build
-```
-
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:8000`
-
 ---
 
 ## API Reference
 
-### `POST /api/simulate`
+### POST /api/simulate
 
 Run a simulation for a single scheduling mechanism.
 
 **Request body:**
 ```json
 {
-  "mechanism": "fifo",        // "fifo" | "priority" | "round_robin"
+  "mechanism": "fifo",
   "num_packets": 300,
-  "arrival_rate": 5.0,        // packets/second (λ)
-  "service_rate": 7.0,        // packets/second (μ)
-  "buffer_size": 50,          // max waiting queue length
+  "arrival_rate": 5.0,
+  "service_rate": 7.0,
+  "buffer_size": 50,
   "high_priority_fraction": 0.3,
-  "seed": 42                  // null for random
+  "seed": 42
 }
 ```
 
-**Response:** summary metrics + downsampled queue-length timeseries.
+mechanism: "fifo" | "priority" | "round_robin"
+
+**Response:** Summary metrics + downsampled queue-length time series.
 
 ---
 
-### `POST /api/simulate/compare`
+### POST /api/simulate/compare
 
-Run all three mechanisms on the **same** packet stream (same seed). Ideal for
-teaching because the only variable is the scheduling discipline.
+Run all three mechanisms on the same packet stream (same seed) for direct comparison.
 
-**Request body:** same as above but without `mechanism`.
+Request body: Same as /api/simulate, without mechanism field.
 
 ---
 
-### `GET /api/presets`
+### GET /api/presets
 
-Returns the three built-in demonstration presets with labels and configurations.
+Returns the three built-in presets with labels and default configurations.
 
 ---
 
 ## Simulation Model
 
-The simulator implements a **discrete-event simulation** of a single-server queue:
+The engine implements a single-server finite-buffer queue:
 
-- **Arrival process:** Poisson with rate λ (exponential inter-arrival times)
-- **Service times:** Exponential with rate μ
-- **Buffer:** Finite capacity K; packets are dropped (tail-drop) when full
-- **Traffic intensity:** ρ = λ/μ  (stable if ρ < 1)
-
-| Mechanism   | Queue discipline                                      |
-|-------------|-------------------------------------------------------|
-| FIFO        | Strict arrival order, no priority                     |
-| Priority    | Non-preemptive; class 1 (high) served before class 0  |
-| Round Robin | Alternates between high and low queues (no starvation)|
+| Parameter | Description |
+|-----------|-------------|
+| Arrival process | Poisson with rate lambda (exponential inter-arrival times) |
+| Service times | Exponential with rate mu |
+| Buffer | Finite capacity K; tail-drop when full |
+| Traffic intensity | rho = lambda/mu |
 
 **Metrics computed:**
-- Average waiting time (time in buffer before service)
-- Average end-to-end delay (sojourn time = wait + service)
+- Average waiting time and end-to-end delay (sojourn time)
 - Throughput (served packets / simulation duration)
 - Packet drop rate
 - Per-class average delay (high vs low priority)
@@ -152,13 +143,13 @@ The simulator implements a **discrete-event simulation** of a single-server queu
 
 ---
 
-## Presets for Classroom Demonstration
+## Built-in Presets
 
-| Preset                    | ρ    | Purpose                                         |
-|---------------------------|------|-------------------------------------------------|
-| Balanced Traffic          | 0.71 | Baseline; all mechanisms behave similarly       |
-| Congested Network         | 1.43 | Overloaded; drops and delay differences amplify |
-| High-Priority Multimedia  | 0.75 | 70 % high-priority; shows Priority benefit      |
+| Preset | rho | Description |
+|--------|-----|-------------|
+| Balanced Traffic | 0.71 | Baseline; all mechanisms perform similarly |
+| Congested Network | 1.43 | Overloaded system; exposes drop rate and delay tradeoffs |
+| High-Priority Multimedia | 0.75 | 70% high-priority traffic; highlights Priority Queue advantage |
 
 ---
 
@@ -167,45 +158,21 @@ The simulator implements a **discrete-event simulation** of a single-server queu
 ```
 .
 ├── backend/
-│   ├── main.py          # FastAPI routes
-│   ├── models.py        # Pydantic schemas
-│   ├── simulator.py     # Simulation engine
+│   ├── main.py           # FastAPI routes and app entry point
+│   ├── models.py         # Pydantic request/response schemas
+│   ├── simulator.py      # Discrete-event simulation engine
 │   └── requirements.txt
 ├── frontend/
-│   ├── app/             # Next.js App Router
-│   ├── components/      # UI components
-│   ├── lib/api.ts       # Fetch wrappers
-│   └── types/           # TypeScript types
+│   ├── app/              # Next.js 14 App Router
+│   ├── components/       # UI components
+│   ├── lib/api.ts        # Typed fetch wrappers for backend API
+│   └── types/            # TypeScript type definitions
 ├── docker-compose.yml
 └── README.md
 ```
 
 ---
 
-## Educational Purpose
-
-This project is designed so that a professor can:
-
-1. Open the browser at `http://localhost:3000`
-2. Click a preset button (e.g. *Congested Network*)
-3. Click **Compare All Mechanisms**
-4. Walk students through the charts and metric cards
-
-The explanation section at the bottom of the page provides concise pros/cons
-for each mechanism, suitable for classroom discussion.
-
----
-
-## Assumptions and Limitations
-
-- Single-server model only (no multi-server extensions)
-- Exponential service and inter-arrival times (M/M/1/K assumptions)
-- Non-preemptive priority (currently in service is never interrupted)
-- Round Robin cycles between exactly two classes (high and low priority)
-- Simulation is statistically simplified but academically defensible
-
----
-
 ## License
 
-MIT — free to use for teaching and research.
+MIT
