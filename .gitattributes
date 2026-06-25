@@ -1,0 +1,2 @@
+# Exclude standalone HTML demo from language statistics
+standalone.html linguist-vendored
